@@ -1,33 +1,31 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { ObjectId } from "mongodb";
+import { NextApiRequest, NextApiResponse } from "next";
 import clientPromise from "@/lib/db";
+import { ObjectId } from "mongodb";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const client = await clientPromise;
   const db = client.db("personalFinance");
-  const collection = db.collection("transactions");
-
   const { id } = req.query;
 
   if (!ObjectId.isValid(id as string)) {
-    return res.status(400).json({ message: "Invalid transaction ID" });
+    return res.status(400).json({ error: "Invalid ID" });
   }
 
-  const _id = new ObjectId(id as string);
+  const collection = db.collection("transactions");
 
-  if (req.method === "PUT") {
-    const { amount, description, date } = req.body;
+  switch (req.method) {
+    case "PUT": {
+      const { amount, description, date } = req.body;
 
-    if (!amount || !description || !date) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
+      if (!amount || !description || !date) {
+        return res.status(400).json({ error: "Missing fields" });
+      }
 
-    try {
-      const result = await collection.updateOne(
-        { _id },
+      await collection.updateOne(
+        { _id: new ObjectId(id as string) },
         {
           $set: {
-            amount: Number(amount),
+            amount,
             description,
             date: new Date(date),
             updatedAt: new Date(),
@@ -35,21 +33,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       );
 
-      return res.status(200).json(result);
-    } catch (error) {
-      return res.status(500).json({ message: "Error updating transaction" });
+      return res.status(200).json({ message: "Transaction updated" });
     }
-  }
 
-  if (req.method === "DELETE") {
-    try {
-      const result = await collection.deleteOne({ _id });
-      return res.status(200).json(result);
-    } catch (error) {
-      return res.status(500).json({ message: "Error deleting transaction" });
+    case "DELETE": {
+      await collection.deleteOne({ _id: new ObjectId(id as string) });
+      return res.status(200).json({ message: "Transaction deleted" });
     }
-  }
 
-  res.setHeader("Allow", ["PUT", "DELETE"]);
-  return res.status(405).end(`Method ${req.method} Not Allowed`);
+    default:
+      return res.status(405).json({ error: "Method not allowed" });
+  }
 }

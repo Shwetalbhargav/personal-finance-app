@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import TransactionForm from "./TransactionForm";
 
 type Transaction = {
@@ -16,6 +16,7 @@ type Transaction = {
 export default function TransactionList({ refreshTrigger }: { refreshTrigger: number }) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
+  const [open, setOpen] = useState(false);
 
   const fetchTransactions = async () => {
     const res = await fetch("/api/transactions");
@@ -53,16 +54,24 @@ export default function TransactionList({ refreshTrigger }: { refreshTrigger: nu
               <td className="p-2">{tx.amount.toFixed(2)}</td>
               <td className="p-2">{format(new Date(tx.date), "dd MMM yyyy")}</td>
               <td className="p-2 text-center space-x-2">
-                <Dialog>
+                {/* EDIT Button opens dialog and loads tx into form */}
+                <Dialog open={open && editTx?._id === tx._id} onOpenChange={setOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => setEditTx(tx)}>Edit</Button>
+                  </DialogTrigger>
                   <DialogContent>
                     <TransactionForm
                       mode="edit"
                       existing={tx}
-                      onSuccess={fetchTransactions}
+                      onSuccess={() => {
+                        fetchTransactions();
+                        setOpen(false);
+                      }}
                     />
                   </DialogContent>
-                  <Button onClick={() => setEditTx(tx)}>Edit</Button>
                 </Dialog>
+
+                {/* DELETE */}
                 <Button variant="destructive" onClick={() => deleteTransaction(tx._id)}>
                   Delete
                 </Button>

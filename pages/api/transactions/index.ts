@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const transactions = await collection.find({}).sort({ date: -1 }).toArray();
       return res.status(200).json(transactions);
-    } catch (error) {
+    } catch  {
       return res.status(500).json({ message: "Error fetching transactions" });
     }
   }
@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       return res.status(201).json(result);
-    } catch (error) {
+    } catch  {
       return res.status(500).json({ message: "Error adding transaction" });
     }
   }

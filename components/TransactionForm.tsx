@@ -61,6 +61,15 @@ export default function TransactionForm({
     setLoading(false);
   };
 
+  useEffect(() => {
+    if (existing) {
+      setAmount(existing.amount.toString());
+      setDescription(existing.description);
+      setDate(existing.date.slice(0, 10));
+    }
+  }, [existing]);
+  
+
   return (
     <form
       onSubmit={handleSubmit}
