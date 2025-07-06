@@ -10,6 +10,11 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import Link from "next/link";
 import { BarChart3, PieChart, PlusCircle, LayoutDashboard } from "lucide-react";
 
+type Transaction = {
+  category: string;
+  amount: number;
+};
+
 export default function LandingPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [open, setOpen] = useState(false);
@@ -27,7 +32,7 @@ export default function LandingPage() {
       const data = await res.json();
   
       const grouped: Record<string, number> = {};
-      data.forEach((tx: any) => {
+      data.forEach((tx: Transaction) => {
         if (!grouped[tx.category]) grouped[tx.category] = 0;
         grouped[tx.category] += tx.amount;
       });
