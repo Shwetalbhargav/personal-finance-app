@@ -5,12 +5,16 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import TransactionForm from "./TransactionForm";
+import { categories } from "../constants/categories";
+
+
 
 type Transaction = {
   _id: string;
   amount: number;
   description: string;
   date: string;
+  category:string;
 };
 
 export default function TransactionList({ refreshTrigger }: { refreshTrigger: number }) {
@@ -41,6 +45,7 @@ export default function TransactionList({ refreshTrigger }: { refreshTrigger: nu
       <table className="w-full text-left border border-gray-200 rounded overflow-hidden">
         <thead className="bg-gray-100">
           <tr>
+            <th className="p-2">Category</th>
             <th className="p-2">Description</th>
             <th className="p-2">Amount (₹)</th>
             <th className="p-2">Date</th>
@@ -50,6 +55,10 @@ export default function TransactionList({ refreshTrigger }: { refreshTrigger: nu
         <tbody>
           {transactions.map((tx) => (
             <tr key={tx._id} className="border-t hover:bg-gray-50">
+              <td className="p-2 flex items-center gap-2">
+                     {categories.find((c) => c.label === tx.category)?.icon()}
+                     <span>{tx.category}</span>
+              </td>
               <td className="p-2">{tx.description}</td>
               <td className="p-2">{tx.amount.toFixed(2)}</td>
               <td className="p-2">{format(new Date(tx.date), "dd MMM yyyy")}</td>

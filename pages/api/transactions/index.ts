@@ -16,9 +16,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "POST") {
-    const { amount, description, date } = req.body;
+    const { amount, description, date, category } = req.body;
 
-    if (!amount || !description || !date) {
+    if (!amount || !description || !date || ! category) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -26,11 +26,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const result = await collection.insertOne({
         amount: Number(amount),
         description,
+        category,
         date: new Date(date),
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-
+      
       return res.status(201).json(result);
     } catch  {
       return res.status(500).json({ message: "Error adding transaction" });

@@ -15,9 +15,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   switch (req.method) {
     case "PUT": {
-      const { amount, description, date } = req.body;
+      const { amount, description, date , category} = req.body;
 
-      if (!amount || !description || !date) {
+      if (!amount || !description || !date ||! category)  {
         return res.status(400).json({ error: "Missing fields" });
       }
 
@@ -27,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           $set: {
             amount,
             description,
+            category,
             date: new Date(date),
             updatedAt: new Date(),
           },

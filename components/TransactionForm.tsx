@@ -1,13 +1,13 @@
-// components/TransactionForm.tsx
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { FaMoneyBill, FaRegCalendarAlt, FaRegFileAlt } from "react-icons/fa";
+import { FaMoneyBill, FaRegCalendarAlt, FaRegFileAlt, FaList } from "react-icons/fa";
+  import { categories } from "../constants/categories";
 
+  
 export default function TransactionForm({
   onSuccess,
   existing,
@@ -19,12 +19,14 @@ export default function TransactionForm({
     amount: number;
     description: string;
     date: string;
+    category: string;
   };
   mode?: "add" | "edit";
 }) {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
+  const [category, setCategory] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -32,6 +34,7 @@ export default function TransactionForm({
       setAmount(existing.amount.toString());
       setDescription(existing.description);
       setDate(existing.date.slice(0, 10));
+      setCategory(existing.category);
     }
   }, [existing]);
 
@@ -43,10 +46,11 @@ export default function TransactionForm({
       amount: parseFloat(amount),
       description,
       date,
+      category,
     };
 
     const method = mode === "edit" ? "PUT" : "POST";
-    const endpoint = mode === "edit" ? `/api/transactions/${existing?._id}` : "/api/transactions";
+    const endpoint = mode === "edit" ? `/api/transactions/${existing?._id}` : "/api/transaction";
 
     const res = await fetch(endpoint, {
       method,
@@ -60,15 +64,6 @@ export default function TransactionForm({
 
     setLoading(false);
   };
-
-  useEffect(() => {
-    if (existing) {
-      setAmount(existing.amount.toString());
-      setDescription(existing.description);
-      setDate(existing.date.slice(0, 10));
-    }
-  }, [existing]);
-  
 
   return (
     <form
@@ -102,6 +97,25 @@ export default function TransactionForm({
           className="text-black placeholder-black"
           placeholder="Enter description"
         />
+      </div>
+
+      <div>
+        <Label htmlFor="category" className="flex items-center gap-2">
+          <FaList /> Category
+        </Label>
+        <select
+          id="category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="w-full border border-gray-300 rounded px-3 py-2 text-black"
+        >
+          <option value="">Select a category</option>
+          {categories.map((cat) => (
+             <option key={cat.label} value={cat.label}>
+          {cat.label}
+          </option>
+           ))}
+        </select>
       </div>
 
       <div>
