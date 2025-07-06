@@ -11,6 +11,7 @@ type Transaction = {
 
 interface Props {
   transactions: Transaction[];
+  selectedMonth: string;
 }
 
 export default function DashboardSummary({ transactions }: Props) {

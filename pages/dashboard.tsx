@@ -147,7 +147,7 @@ const Dashboard = () => {
               {filteredTx.slice(0, 5).map((tx) => (
                 <tr key={tx._id} className="border-t dark:border-zinc-600">
                   <td className="py-1 flex items-center gap-2">
-                    {categories.find((c) => c.label === tx.category)?.icon({ className: "text-blue-500" })}
+                    {categories.find((c) => c.label === tx.category)?.icon()}
                     {tx.category}
                   </td>
                   <td className="py-1">{tx.description}</td>
