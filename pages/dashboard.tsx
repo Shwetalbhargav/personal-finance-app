@@ -75,7 +75,7 @@ const Dashboard = () => {
     const item = categories.find((c) => c.label === value);
     return (
       <span className="flex items-center gap-2">
-        {item?.icon && item.icon({ className: "text-blue-500" })}
+        {item?.icon && <item.icon /> }
         {value}
       </span>
     );
