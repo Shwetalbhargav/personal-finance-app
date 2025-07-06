@@ -8,7 +8,6 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { categories } from "@/constants/categories";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -42,13 +41,11 @@ export default function BudgetComparisonChart({ selectedMonth, transactions }: P
     fetchBudgets();
   }, []);
 
-  // Filter for selected month
   const monthBudgets = budgets.filter((b) => b.month === selectedMonth);
   const monthTx = transactions.filter(
     (tx) => tx.date.slice(0, 7) === selectedMonth
   );
 
-  // Group actuals
   const actuals: Record<string, number> = {};
   monthTx.forEach((tx) => {
     if (!actuals[tx.category]) actuals[tx.category] = 0;
@@ -63,12 +60,12 @@ export default function BudgetComparisonChart({ selectedMonth, transactions }: P
       {
         label: "Budgeted",
         data: labels.map(label => monthBudgets.find(b => b.category === label)?.amount || 0),
-        backgroundColor: "rgba(59, 130, 246, 0.6)", 
+        backgroundColor: "rgba(59, 130, 246, 0.6)",
       },
       {
         label: "Actual",
         data: labels.map(label => actuals[label] || 0),
-        backgroundColor: "rgba(239, 68, 68, 0.6)", 
+        backgroundColor: "rgba(239, 68, 68, 0.6)",
       },
     ],
   };

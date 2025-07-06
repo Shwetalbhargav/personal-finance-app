@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { FaRupeeSign, FaCalendarAlt } from "react-icons/fa";
 
 type Transaction = {
@@ -39,7 +38,6 @@ export default function DashboardSummary({ transactions, selectedMonth, budgets 
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 animate-fade-in">
-      {/* Total Expenses */}
       <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-4 transition-all">
         <h3 className="text-sm font-medium text-gray-500 dark:text-gray-300 flex items-center gap-2">
           <FaRupeeSign /> Total Expenses
@@ -47,7 +45,6 @@ export default function DashboardSummary({ transactions, selectedMonth, budgets 
         <p className="text-xl font-semibold text-red-600 dark:text-red-400">₹{total.toFixed(2)}</p>
       </div>
 
-      {/* Monthly Expenses */}
       <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-4 transition-all space-y-2">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-300 flex items-center gap-2">
@@ -58,7 +55,6 @@ export default function DashboardSummary({ transactions, selectedMonth, budgets 
           </p>
         </div>
 
-        {/* Insights */}
         {selectedMonth && (
           <div className="bg-gray-100 dark:bg-zinc-800 p-3 rounded mt-2">
             <h4 className="font-semibold text-sm mb-2">Spending Insights ({selectedMonth})</h4>
