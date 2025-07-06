@@ -9,31 +9,33 @@ type Transaction = {
   date: string;
 };
 
+type Budget = {
+  category: string;
+  amount: number;
+};
+
 interface Props {
   transactions: Transaction[];
   selectedMonth: string;
+  budgets: Budget[];
 }
 
-export default function DashboardSummary({ transactions }: Props) {
-  const [selectedMonth, setSelectedMonth] = useState<string>("");
-
+export default function DashboardSummary({ transactions, selectedMonth, budgets }: Props) {
   const total = transactions.reduce((sum, tx) => sum + tx.amount, 0);
 
-  const monthlyTotal = transactions
-    .filter((tx) =>
-      selectedMonth
-        ? new Date(tx.date).toLocaleString("default", { month: "long", year: "numeric" }) === selectedMonth
-        : true
-    )
-    .reduce((sum, tx) => sum + tx.amount, 0);
-
-  const months = Array.from(
-    new Set(
-      transactions.map((tx) =>
-        new Date(tx.date).toLocaleString("default", { month: "long", year: "numeric" })
+  const filtered = selectedMonth
+    ? transactions.filter(
+        (tx) =>
+          new Date(tx.date).toLocaleString("default", { month: "long", year: "numeric" }) === selectedMonth
       )
-    )
-  );
+    : transactions;
+
+  const monthlyTotal = filtered.reduce((sum, tx) => sum + tx.amount, 0);
+
+  const totalsByCategory = filtered.reduce<Record<string, number>>((acc, tx) => {
+    acc[tx.category] = (acc[tx.category] || 0) + tx.amount;
+    return acc;
+  }, {});
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 animate-fade-in">
@@ -42,31 +44,42 @@ export default function DashboardSummary({ transactions }: Props) {
         <h3 className="text-sm font-medium text-gray-500 dark:text-gray-300 flex items-center gap-2">
           <FaRupeeSign /> Total Expenses
         </h3>
-        <p className="text-xl font-semibold text-red-600 dark:text-red-400">
-          ₹{total.toFixed(2)}
-        </p>
+        <p className="text-xl font-semibold text-red-600 dark:text-red-400">₹{total.toFixed(2)}</p>
       </div>
 
-      {/* Monthly Expenses with dropdown */}
+      {/* Monthly Expenses */}
       <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-4 transition-all space-y-2">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-300 flex items-center gap-2">
             <FaCalendarAlt /> Monthly Expenses
           </h3>
-          <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="border px-2 py-1 rounded dark:bg-zinc-800 dark:text-white text-sm"
-          >
-            <option value="">All</option>
-            {months.map((month) => (
-              <option key={month}>{month}</option>
-            ))}
-          </select>
+          <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold">
+            ₹{monthlyTotal.toFixed(2)}
+          </p>
         </div>
-        <p className="text-xl font-semibold text-blue-600 dark:text-blue-400">
-          ₹{monthlyTotal.toFixed(2)}
-        </p>
+
+        {/* Insights */}
+        {selectedMonth && (
+          <div className="bg-gray-100 dark:bg-zinc-800 p-3 rounded mt-2">
+            <h4 className="font-semibold text-sm mb-2">Spending Insights ({selectedMonth})</h4>
+            <ul className="list-disc list-inside text-sm space-y-1">
+              {budgets.map((b) => {
+                const actual = totalsByCategory[b.category] || 0;
+                const diff = actual - b.amount;
+                return (
+                  <li
+                    key={b.category}
+                    className={diff > 0 ? "text-red-500" : "text-green-600"}
+                  >
+                    {diff > 0
+                      ? `Over budget by ₹${diff.toFixed(2)} in ${b.category}`
+                      : `Under budget by ₹${Math.abs(diff).toFixed(2)} in ${b.category}`}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );

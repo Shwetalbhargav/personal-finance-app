@@ -20,10 +20,19 @@ type Transaction = {
   date: string;
 };
 
-const COLORS = [
-  "#8884d8", "#82ca9d", "#ffc658", "#ff8042", "#00C49F",
-  "#FFBB28", "#0088FE", "#FF4444", "#AA66CC", "#6699CC",
-  "#99CC00", "#FF8800", "#33B5E5", "#FF4444"
+const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff8042", "#00C49F", "#FFBB28", "#0088FE"];
+
+const predefinedBudgets = [
+  { category: "Shopping", amount: 5000 },
+  { category: "Travel", amount: 3000 },
+  { category: "Dining Out (+Take Out)", amount: 2000 },
+  { category: "Movies", amount: 1000 },
+  { category: "Internet and Mobile", amount: 1200 },
+  { category: "Provisions", amount: 4000 },
+  { category: "Insurance", amount: 2500 },
+  { category: "SIP (Investments)", amount: 5000 },
+  { category: "EMI (House)", amount: 15000 },
+  { category: "EMI (Car)", amount: 7000 }
 ];
 
 const Dashboard = () => {
@@ -46,21 +55,22 @@ const Dashboard = () => {
 
       const grouped: Record<string, number> = {};
       filtered.forEach((tx) => {
-        if (!grouped[tx.category]) grouped[tx.category] = 0;
-        grouped[tx.category] += tx.amount;
+        grouped[tx.category] = (grouped[tx.category] || 0) + tx.amount;
       });
 
-      const chartReady = Object.entries(grouped).map(([category, amount]) => ({ category, amount }));
-      setCategoryData(chartReady);
+      const chartData = Object.entries(grouped).map(([category, amount]) => ({ category, amount }));
+      setCategoryData(chartData);
     };
 
     fetchData();
   }, [selectedMonth]);
 
   const months = Array.from(
-    new Set(transactions.map((tx) =>
-      new Date(tx.date).toLocaleString("default", { month: "long", year: "numeric" })
-    ))
+    new Set(
+      transactions.map((tx) =>
+        new Date(tx.date).toLocaleString("default", { month: "long", year: "numeric" })
+      )
+    )
   );
 
   const filteredTx = selectedMonth
@@ -70,12 +80,11 @@ const Dashboard = () => {
       )
     : transactions;
 
-  // Custom legend with icons
   const renderLegend = (value: string) => {
     const item = categories.find((c) => c.label === value);
     return (
       <span className="flex items-center gap-2">
-        {item?.icon && <item.icon /> }
+        {item?.icon && <item.icon />}
         {value}
       </span>
     );
@@ -105,7 +114,11 @@ const Dashboard = () => {
         </select>
       </div>
 
-      <DashboardSummary transactions={transactions} selectedMonth={selectedMonth} />
+      <DashboardSummary
+        transactions={transactions}
+        selectedMonth={selectedMonth}
+        budgets={predefinedBudgets}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Pie Chart */}
@@ -137,7 +150,7 @@ const Dashboard = () => {
           <h2 className="text-lg font-semibold mb-2">Recent Transactions</h2>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-gray-500 dark:text-gray-300 border-b border-gray-300 dark:border-gray-600">
+              <tr className="text-left text-gray-500 dark:text-gray-300 border-b">
                 <th className="py-1">Category</th>
                 <th className="py-1">Description</th>
                 <th className="py-1">Amount</th>
