@@ -8,6 +8,7 @@ import MonthlyChart from "./MonthlyChart";
 import BudgetComparisonChart from "./BudgetComparisonChart";
 import BudgetManager from "./BudgetManager";
 import { Transaction } from "../types";
+import Link from 'next/link';
 
 const LandingPage = () => {
   const [showForm, setShowForm] = useState(false);
@@ -41,9 +42,9 @@ const LandingPage = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Personal Finance Tracker</h1>
-        <a href="/dashboard">
-          <Button>Go to Dashboard</Button>
-        </a>
+        <Link href="/dashboard">
+          <a className="your-class">Go to Dashboard</a>
+        </Link>
       </div>
 
       {/* Filters */}

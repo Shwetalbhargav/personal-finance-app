@@ -6,7 +6,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const collection = db.collection("budgets");
 
   if (req.method === "POST") {
-    const { category, amount, month, totalBudget } = req.body;
+    const { category,  month, totalBudget } = req.body;
 
     if (!category || !month || totalBudget === undefined) {
       return res.status(400).json({ message: "Missing required fields" });

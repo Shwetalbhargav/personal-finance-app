@@ -1,14 +1,14 @@
 import DashboardSummary from "@/components/DashboardSummary";
 import CategoryPieChart from "@/components/CategoryPieChart";
 import BudgetComparisonChart from "@/components/BudgetComparisonChart";
-import MonthlyChart from "@/components/MonthlyChart";
 import { Transaction } from "@/types";
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/router";
 
 export default function Dashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [budgets, setBudgets] = useState<any[]>([]);
+  type Budget = { category: string; totalBudget: number };
+  const [budgets, setBudgets] = useState<Budget[]>([]);
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
