@@ -1,22 +1,40 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { updateBudget, deleteBudget } from '@/lib/budget';
+import { NextApiRequest, NextApiResponse } from "next";
+import { ObjectId } from "mongodb";
+import { connectToDatabase } from "@/lib/db";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { db } = await connectToDatabase();
+  const collection = db.collection("budgets");
+
   const { id } = req.query;
 
-  try {
-    if (req.method === 'PUT') {
-      const success = await updateBudget(id as string, req.body);
-      res.status(success ? 200 : 404).json({ success });
-    } else if (req.method === 'DELETE') {
-      const success = await deleteBudget(id as string);
-      res.status(success ? 200 : 404).json({ success });
-    } else {
-      res.setHeader('Allow', ['PUT', 'DELETE']);
-      res.status(405).end(`Method ${req.method} Not Allowed`);
-    }
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
+  if (!id || typeof id !== "string") {
+    return res.status(400).json({ message: "Invalid ID" });
   }
+
+  if (req.method === "PUT") {
+    const { category, amount, month, totalBudget } = req.body;
+
+    const result = await collection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          category,
+          amount,
+          month,
+          totalBudget: totalBudget || 0, 
+        },
+      }
+    );
+
+    return res.status(200).json({ modified: result.modifiedCount });
+  }
+
+  if (req.method === "DELETE") {
+    const result = await collection.deleteOne({ _id: new ObjectId(id) });
+    return res.status(200).json({ deleted: result.deletedCount });
+  }
+
+  res.setHeader("Allow", ["PUT", "DELETE"]);
+  res.status(405).end(`Method ${req.method} Not Allowed`);
 }

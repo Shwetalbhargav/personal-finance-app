@@ -1,124 +1,120 @@
-"use client";
-
-import { useEffect,useState } from "react";
-import TransactionList from "@/components/TransactionList";
-import TransactionForm from "@/components/TransactionForm";
-import MonthlyChart from "@/components/MonthlyChart";
-import CategoryPieChart from "@/components/CategoryPieChart";
+// LandingPage.tsx
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import Link from "next/link";
-import { BarChart3, PieChart, PlusCircle, LayoutDashboard } from "lucide-react";
+import TransactionForm from "./TransactionForm";
+import TransactionList from "./TransactionList";
+import MonthlyChart from "./MonthlyChart";
+import BudgetComparisonChart from "./BudgetComparisonChart";
+import BudgetManager from "./BudgetManager";
+import { Transaction } from "../types";
 
-type Transaction = {
-  category: string;
-  amount: number;
-};
+const LandingPage = () => {
+  const [showForm, setShowForm] = useState(false);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [selectedMonth, setSelectedMonth] = useState("2025-07");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
-export default function LandingPage() {
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [open, setOpen] = useState(false);
-  const [selectedChart, setSelectedChart] = useState<"bar" | "pie">("bar");
-  const [categoryData, setCategoryData] = useState<{ category: string; amount: number }[]>([]);
-
-
-  const handleSuccess = () => {
-    setRefreshKey((prev) => prev + 1);
-    setOpen(false);
+  const handleTransactionSaved = () => {
+    setShowForm(false);
+    setRefreshTrigger((prev) => prev + 1);
   };
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchTransactions = async () => {
       const res = await fetch("/api/transactions");
       const data = await res.json();
-  
-      const grouped: Record<string, number> = {};
-      data.forEach((tx: Transaction) => {
-        if (!grouped[tx.category]) grouped[tx.category] = 0;
-        grouped[tx.category] += tx.amount;
-      });
-  
-      const formatted = Object.entries(grouped).map(([category, amount]) => ({
-        category,
-        amount,
-      }));
-  
-      setCategoryData(formatted);
+      setTransactions(data);
     };
-  
-    fetchData();
-  }, []);
+    fetchTransactions();
+  }, [refreshTrigger]);
+
+  const filteredTransactions = transactions.filter((t) => {
+    const matchMonth = selectedMonth ? t.date.startsWith(selectedMonth) : true;
+    const matchCategory = selectedCategory ? t.category === selectedCategory : true;
+    return matchMonth && matchCategory;
+  });
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6 text-black">
+    <div className="p-4 space-y-6 bg-gray-100 min-h-screen text-black">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 className="text-3xl font-bold text-indigo-800 flex items-center gap-2">
-          <LayoutDashboard className="text-indigo-500" />
-          Personal Finance Tracker
-        </h1>
-
-        <Link href="/dashboard">
-          <Button className="bg-indigo-600 hover:bg-indigo-700 text-white flex gap-2">
-            <LayoutDashboard size={18} />
-            View Full Dashboard
-          </Button>
-        </Link>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Personal Finance Tracker</h1>
+        <a href="/dashboard">
+          <Button>Go to Dashboard</Button>
+        </a>
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        {/* Transactions Panel */}
-        <div className="space-y-4 h-full w-full">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-              <BarChart3 className="text-blue-600" />
-              Transactions
-            </h2>
+      {/* Filters */}
+      <div className="flex space-x-4">
+        <input
+          type="month"
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(e.target.value)}
+          className="p-2 border rounded text-black"
+        />
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="p-2 border rounded text-black"
+        >
+          <option value="">All Categories</option>
+          <option value="Provisions">Provisions</option>
+          <option value="EMI (House)">EMI (House)</option>
+          <option value="Insurance">Insurance</option>
+          <option value="Internet and Mobile">Internet and Mobile</option>
+        </select>
+      </div>
 
-            <Dialog open={open} onOpenChange={setOpen}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Transactions */}
+        <div className="bg-white p-4 rounded-2xl shadow h-[500px] flex flex-col">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold">Transactions</h2>
+            <Dialog>
               <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white flex gap-2">
-                  <PlusCircle size={18} />
-                  Add
-                </Button>
+                <Button className="text-white bg-blue-600 hover:bg-blue-700">+ Add</Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <TransactionForm onSuccess={handleSuccess} />
+              <DialogContent>
+                <TransactionForm onSuccess={handleTransactionSaved} />
               </DialogContent>
             </Dialog>
           </div>
-
-          <TransactionList refreshTrigger={refreshKey} />
+          <div className="overflow-y-auto flex-grow scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+            <TransactionList
+              transactions={filteredTransactions}
+              onRefresh={() => setRefreshTrigger((prev) => prev + 1)}
+            />
+          </div>
         </div>
 
-        {/* Charts Panel */}
-        <div className="space-y-4 h-full w-full">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-              {selectedChart === "bar" ? <BarChart3 /> : <PieChart />}
-              Expense Breakdown
-            </h2>
+        {/* Expense Chart */}
+        <div className="bg-white p-4 rounded-2xl shadow h-[500px]">
+          <h2 className="text-lg font-bold mb-4">Expense Breakdown</h2>
+          <MonthlyChart refreshTrigger={refreshTrigger} />
+        </div>
 
-            <select
-              value={selectedChart}
-              onChange={(e) =>
-                setSelectedChart(e.target.value as "bar" | "pie")
-              }
-              className="border border-gray-300 px-3 py-1 rounded text-sm text-black"
-            >
-              <option value="bar">Monthly Bar Chart</option>
-              <option value="pie">Category Pie Chart</option>
-            </select>
-          </div>
+        {/* Budget Table with Set Button */}
+        <div className="bg-white p-4 rounded-2xl shadow h-[500px] flex flex-col">
+                  <h2 className="text-lg font-bold mb-2">Budgets</h2>
 
-          {selectedChart === "bar" ? (
-            <MonthlyChart refreshTrigger={refreshKey} />
-          ) : (
-            <CategoryPieChart data={categoryData} />
+        <div className="overflow-y-auto flex-grow scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+             <BudgetManager />
+                     </div>
+        </div>
 
-          )}
+        {/* Budget vs Actual */}
+        <div className="bg-white p-4 rounded-2xl shadow">
+          <BudgetComparisonChart
+            selectedMonth={selectedMonth}
+            transactions={transactions}
+            chartType="pie"
+          />
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default LandingPage;

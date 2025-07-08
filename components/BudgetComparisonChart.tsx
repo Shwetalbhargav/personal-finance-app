@@ -13,7 +13,7 @@ ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 type Budget = {
   category: string;
-  amount: number;
+  totalBudget: number; 
   month: string;
 };
 
@@ -23,12 +23,15 @@ type Transaction = {
   date: string;
 };
 
+
+
 interface Props {
   selectedMonth: string;
   transactions: Transaction[];
+  chartType?: "bar" | "pie";
 }
 
-export default function BudgetComparisonChart({ selectedMonth, transactions }: Props) {
+export default function BudgetComparisonChart({ selectedMonth, transactions, chartType = "bar"  }: Props) {
   const [budgets, setBudgets] = useState<Budget[]>([]);
 
   useEffect(() => {
@@ -59,7 +62,7 @@ export default function BudgetComparisonChart({ selectedMonth, transactions }: P
     datasets: [
       {
         label: "Budgeted",
-        data: labels.map(label => monthBudgets.find(b => b.category === label)?.amount || 0),
+        data: labels.map(label => monthBudgets.find(b => b.category === label)?.totalBudget || 0),
         backgroundColor: "rgba(59, 130, 246, 0.6)",
       },
       {

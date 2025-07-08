@@ -50,7 +50,7 @@ export default function TransactionForm({
     };
 
     const method = mode === "edit" ? "PUT" : "POST";
-    const endpoint = mode === "edit" ? `/api/transactions/${existing?._id}` : "/api/transaction";
+    const endpoint = mode === "edit" ? `/api/transactions/${existing?._id}` : "/api/transactions";
 
     const res = await fetch(endpoint, {
       method,

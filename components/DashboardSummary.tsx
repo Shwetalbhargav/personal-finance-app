@@ -8,74 +8,50 @@ type Transaction = {
   date: string;
 };
 
-type Budget = {
-  category: string;
-  amount: number;
-};
-
-interface Props {
+type DashboardSummaryProps = {
   transactions: Transaction[];
   selectedMonth: string;
-  budgets: Budget[];
-}
+  totalSavings: number;
+};
 
-export default function DashboardSummary({ transactions, selectedMonth, budgets }: Props) {
-  const total = transactions.reduce((sum, tx) => sum + tx.amount, 0);
+export default function DashboardSummary({
+  transactions,
+  selectedMonth,
+  totalSavings,
+}: DashboardSummaryProps) {
+  const filteredTx = transactions.filter((tx) =>
+    tx.date.startsWith(selectedMonth)
+  );
 
-  const filtered = selectedMonth
-    ? transactions.filter(
-        (tx) =>
-          new Date(tx.date).toLocaleString("default", { month: "long", year: "numeric" }) === selectedMonth
-      )
-    : transactions;
-
-  const monthlyTotal = filtered.reduce((sum, tx) => sum + tx.amount, 0);
-
-  const totalsByCategory = filtered.reduce<Record<string, number>>((acc, tx) => {
-    acc[tx.category] = (acc[tx.category] || 0) + tx.amount;
-    return acc;
-  }, {});
+  const totalSpent = filteredTx.reduce((sum, tx) => sum + tx.amount, 0);
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 animate-fade-in">
-      <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-4 transition-all">
-        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-300 flex items-center gap-2">
-          <FaRupeeSign /> Total Expenses
-        </h3>
-        <p className="text-xl font-semibold text-red-600 dark:text-red-400">₹{total.toFixed(2)}</p>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* 📅 Selected Month */}
+      <div className="bg-white dark:bg-zinc-800 text-black dark:text-white rounded-lg shadow p-4 flex items-center gap-4">
+        <FaCalendarAlt className="text-blue-500 text-xl" />
+        <div>
+          <div className="text-sm text-gray-500">Selected Month</div>
+          <div className="font-bold">{selectedMonth}</div>
+        </div>
       </div>
 
-      <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-4 transition-all space-y-2">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-300 flex items-center gap-2">
-            <FaCalendarAlt /> Monthly Expenses
-          </h3>
-          <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold">
-            ₹{monthlyTotal.toFixed(2)}
-          </p>
+      {/* 💸 Total Spent */}
+      <div className="bg-white dark:bg-zinc-800 text-black dark:text-white rounded-lg shadow p-4 flex items-center gap-4">
+        <FaRupeeSign className="text-red-500 text-xl" />
+        <div>
+          <div className="text-sm text-gray-500">Total Spent</div>
+          <div className="font-bold">₹{totalSpent.toLocaleString()}</div>
         </div>
+      </div>
 
-        {selectedMonth && (
-          <div className="bg-gray-100 dark:bg-zinc-800 p-3 rounded mt-2">
-            <h4 className="font-semibold text-sm mb-2">Spending Insights ({selectedMonth})</h4>
-            <ul className="list-disc list-inside text-sm space-y-1">
-              {budgets.map((b) => {
-                const actual = totalsByCategory[b.category] || 0;
-                const diff = actual - b.amount;
-                return (
-                  <li
-                    key={b.category}
-                    className={diff > 0 ? "text-red-500" : "text-green-600"}
-                  >
-                    {diff > 0
-                      ? `Over budget by ₹${diff.toFixed(2)} in ${b.category}`
-                      : `Under budget by ₹${Math.abs(diff).toFixed(2)} in ${b.category}`}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
+      {/* 💰 Total Savings */}
+      <div className="bg-white dark:bg-zinc-800 text-black dark:text-white rounded-lg shadow p-4 flex items-center gap-4">
+        <FaRupeeSign className="text-green-600 text-xl" />
+        <div>
+          <div className="text-sm text-gray-500">Total Savings</div>
+          <div className="font-bold">₹{totalSavings.toLocaleString()}</div>
+        </div>
       </div>
     </div>
   );

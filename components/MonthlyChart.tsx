@@ -26,21 +26,29 @@ type ChartData = {
   amount: number;
 };
 
+interface Props {
+  transactions?: Transaction[];
+  onRefresh?: () => void;
+  refreshTrigger?: number;
+}
+
 const COLORS = ["#60a5fa", "#34d399", "#facc15", "#fb923c", "#c084fc", "#f87171"];
 
-export default function MonthlyChart({ refreshTrigger }: { refreshTrigger: number }) {
+export default function MonthlyChart({ transactions, refreshTrigger }: Props) {
   const [data, setData] = useState<ChartData[]>([]);
 
   useEffect(() => {
-    const fetchAndGroup = async () => {
-      const res = await fetch("/api/transactions");
-      const transactions: Transaction[] = await res.json();
+    const loadData = async () => {
+      let txs: Transaction[] = transactions ?? [];
+
+      if (!txs.length) {
+        const res = await fetch("/api/transactions");
+        txs = await res.json();
+      }
 
       const grouped: Record<string, number> = {};
-
-      transactions.forEach((tx) => {
-        const date = new Date(tx.date);
-        const month = format(date, "MMM yyyy"); // e.g. "Jul 2025"
+      txs.forEach((tx) => {
+        const month = format(new Date(tx.date), "MMM yyyy");
         grouped[month] = (grouped[month] || 0) + tx.amount;
       });
 
@@ -52,26 +60,32 @@ export default function MonthlyChart({ refreshTrigger }: { refreshTrigger: numbe
       setData(chartData);
     };
 
-    fetchAndGroup();
-  }, [refreshTrigger]);
+    loadData();
+  }, [refreshTrigger, transactions]);
 
   return (
     <div className="p-4 bg-white rounded-lg shadow text-black">
       <ResponsiveContainer width="100%" height={320}>
-        <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="month" label={{ value: "Month", position: "insideBottom", dy: 10 }} />
-          <YAxis label={{ value: "Total ₹", angle: -90, position: "insideLeft", dx: -10 }} />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="amount" name="Total Expense">
-            <LabelList dataKey="amount" position="top" />
-            {data.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+  <BarChart
+    data={data}
+    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+    barCategoryGap={20} 
+    barGap={5} 
+  >
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey="month" />
+    <YAxis />
+    <Tooltip />
+    <Legend />
+    <Bar dataKey="amount" barSize={40} name="Total Expense">
+      <LabelList dataKey="amount" position="top" />
+      {data.map((_, i) => (
+        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+      ))}
+    </Bar>
+  </BarChart>
+</ResponsiveContainer>
+
     </div>
   );
 }

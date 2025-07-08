@@ -1,68 +1,117 @@
 import { useState } from "react";
 import { categories } from "@/constants/categories";
+import { Budget } from "@/types"; 
 
-export default function BudgetForm({ onBudgetSaved }: { onBudgetSaved: () => void }) {
-  const [month, setMonth] = useState("");
-  const [category, setCategory] = useState("");
-  const [amount, setAmount] = useState("");
+interface Props {
+  onSuccess: () => void;
+  existing?: Budget;
+  mode?: "add" | "edit";
+}
+
+export default function BudgetForm({ onSuccess, existing, mode = "add" }: Props) {
+  const [form, setForm] = useState<Omit<Budget, "_id">>({
+    category: existing?.category || "",
+    month: existing?.month || "",
+    totalBudget: existing?.totalBudget ?? 0,
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: name === "totalBudget" ? Number(value) : value,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch("/api/budgets", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ month, category, amount: parseFloat(amount) }),
-    });
-
+  
+    // Validation check
+    if (!form.category || !form.month || !form.totalBudget || form.totalBudget <= 0) {
+      alert("Please fill in all fields correctly.");
+      return;
+    }
+  
+    const payload = {
+      category: form.category,
+      month: form.month,
+      totalBudget: form.totalBudget,
+    };
+    console.log("Submitting payload:", payload);
+  
+    const res = await fetch(
+      mode === "edit" ? `/api/budgets/${existing?._id}` : "/api/budgets",
+      {
+        method: mode === "edit" ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    );
+  
     if (res.ok) {
-      setMonth("");
-      setCategory("");
-      setAmount("");
-      onBudgetSaved();
+      onSuccess();
+    } else {
+      const error = await res.json();
+      console.error("API error:", error);
+      alert("Failed to submit budget. Check console.");
     }
   };
+  
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-white p-4 rounded shadow">
-      <div>
-        <label className="block text-sm font-medium">Month</label>
-        <input
-          type="month"
-          value={month}
-          onChange={(e) => setMonth(e.target.value)}
-          className="border p-2 w-full"
-          required
-        />
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-white rounded shadow w-full max-w-md mx-auto text-black">
+      <h2 className="text-lg font-semibold">Budgets</h2>
 
-      <div>
-        <label className="block text-sm font-medium">Category</label>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="border p-2 w-full"
-          required
-        >
-          <option value="">Select Category</option>
-          {categories.map((c) => (
-            <option key={c.label} value={c.label}>{c.label}</option>
-          ))}
-        </select>
-      </div>
+      {/* Category Dropdown */}
+      <select
+        name="category"
+        value={form.category}
+        onChange={handleChange}
+        className="w-full p-2 border rounded text-black"
+        required
+      >
+        <option value="">Select Category</option>
+        {categories.map((cat) => (
+          <option key={cat.label} value={cat.label}>
+            {cat.label}
+          </option>
+        ))}
+      </select>
 
-      <div>
-        <label className="block text-sm font-medium">Amount</label>
-        <input
-          type="number"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="border p-2 w-full"
-          required
-        />
-      </div>
+      {/* Month Input */}
+      <div className="relative">
+  <input
+    type="month"
+    name="month"
+    value={form.month}
+    onChange={handleChange}
+    className="w-full p-2 pl-10 border rounded text-black"
+    required
+  />
+  <span className="absolute left-3 top-2.5 text-gray-500 pointer-events-none">
+    📅
+  </span>
+</div>
 
-      <button type="submit" className="bg-black text-white px-4 py-2 rounded">
-        Save Budget
+      {/* Budget Input */}
+      <input
+        name="totalBudget"
+        type="number"
+        value={form.totalBudget === 0 ? "" : form.totalBudget}
+        onChange={handleChange}
+        placeholder="Total Budget"
+        className="w-full p-2 border rounded text-black"
+        required
+      />
+
+      {/* Submit Button */}
+      <button
+        type="submit"
+        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded w-full"
+      >
+        {mode === "edit" ? "Update" : "Add"} Budget
       </button>
     </form>
   );
