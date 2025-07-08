@@ -110,7 +110,7 @@ const LandingPage = () => {
           <BudgetComparisonChart
             selectedMonth={selectedMonth}
             transactions={transactions}
-            chartType="pie"
+            
           />
         </div>
       </div>

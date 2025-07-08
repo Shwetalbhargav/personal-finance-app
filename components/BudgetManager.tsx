@@ -31,17 +31,24 @@ export default function BudgetManager({ displayOnly = false, selectedMonth }: Bu
   const [monthlyForm, setMonthlyForm] = useState({ month: currentMonth, amount: 0 });
   const [monthlyBudgetAmount, setMonthlyBudgetAmount] = useState<number | null>(null);
 
+
   const fetchBudgets = async () => {
     const res = await fetch(`/api/budgets?month=${currentMonth}`);
     const data = await res.json();
     setBudgets(data);
   };
-
-  const fetchMonthlyBudget = async () => {
-    const res = await fetch(`/api/monthly-budget?month=${currentMonth}`);
-    const data = await res.json();
-    setMonthlyBudgetAmount(data.amount || null);
-  };
+  useEffect(() => {
+    
+  
+    const fetchMonthlyBudget = async () => {
+      const res = await fetch(`/api/monthly-budget?month=${currentMonth}`);
+      const data = await res.json();
+      setMonthlyBudgetAmount(data.amount || null);
+    };
+  
+    fetchBudgets();
+    fetchMonthlyBudget();
+  }, [currentMonth]);
 
   const deleteBudget = async (id: string) => {
     if (!confirm("Delete this budget?")) return;
@@ -63,12 +70,9 @@ export default function BudgetManager({ displayOnly = false, selectedMonth }: Bu
       alert("Failed to save monthly budget");
     }
   };
-
-  useEffect(() => {
-    fetchBudgets();
-    fetchMonthlyBudget();
-  }, [currentMonth]);
-
+  
+  
+  
   return (
     <div className="space-y-4">
       {/* Controls */}

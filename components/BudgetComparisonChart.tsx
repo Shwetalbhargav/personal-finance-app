@@ -28,10 +28,10 @@ type Transaction = {
 interface Props {
   selectedMonth: string;
   transactions: Transaction[];
-  chartType?: "bar" | "pie";
+  
 }
 
-export default function BudgetComparisonChart({ selectedMonth, transactions, chartType = "bar"  }: Props) {
+export default function BudgetComparisonChart({ selectedMonth, transactions,  }: Props) {
   const [budgets, setBudgets] = useState<Budget[]>([]);
 
   useEffect(() => {
